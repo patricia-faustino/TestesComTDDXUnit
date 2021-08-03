@@ -30,8 +30,9 @@ namespace Alura.LeilaoOnline.Core
         {
 
             Ganhador = Lances
+                .DefaultIfEmpty(new Lance(null, 0))
                 .OrderBy(lance => lance.Valor)
-                .Last();
+                .LastOrDefault();
         }
     }
 }
