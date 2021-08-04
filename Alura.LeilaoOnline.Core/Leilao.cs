@@ -15,25 +15,28 @@ namespace Alura.LeilaoOnline.Core
         private Interessada _ultimoCliente;
 
         private IList<Lance> _lances;
+        public double ValorDestino { get; }
+
         public IEnumerable<Lance> Lances => _lances;
         public string Peca { get; }
         public Lance Ganhador { get; private set; }
 
         public EstadoLeilao Estado { get; private set; }
 
-        public Leilao(string peca)
+        public Leilao(string peca, double valorDestino = 0)
         {
             Peca = peca;
             _lances = new List<Lance>();
             Estado = EstadoLeilao.LeilaoAntesDoPregao;
+            ValorDestino = valorDestino;
         }
 
         public void RecebeLance(Interessada cliente, double valor)
         {
             if (NovoLanceEhAceito(cliente))
             {
-                    _lances.Add(new Lance(cliente, valor));
-                    _ultimoCliente = cliente;
+                _lances.Add(new Lance(cliente, valor));
+                _ultimoCliente = cliente;
             }
 
         }
@@ -56,10 +59,24 @@ namespace Alura.LeilaoOnline.Core
                 throw new InvalidOperationException("Não é permitido finalizar o pregão sem que ele tenha inicializado." +
                 "Utilize o método IniciaPregao().");
             }
-            Ganhador = Lances
-                .DefaultIfEmpty(new Lance(null, 0))
-                .OrderBy(lance => lance.Valor)
-                .LastOrDefault();
+            if (ValorDestino > 0)
+            {
+                // modalidade oferta superior mais próxima
+                Ganhador = Lances
+                    .DefaultIfEmpty(new Lance(null, 0))
+                    .Where(lance => lance.Valor > ValorDestino)
+                    .OrderBy(lance => lance.Valor)
+                    .FirstOrDefault();
+
+            }
+            else
+            {
+                Ganhador = Lances
+                    .DefaultIfEmpty(new Lance(null, 0))
+                    .OrderBy(lance => lance.Valor)
+                    .LastOrDefault();
+            }
+
             Estado = EstadoLeilao.LeilaoFinalizado;
 
         }
