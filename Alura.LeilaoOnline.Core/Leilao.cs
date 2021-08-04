@@ -11,6 +11,7 @@ namespace Alura.LeilaoOnline.Core
     }
     public class Leilao
     {
+        private Interessada _ultimoCliente;
 
         private IList<Lance> _lances;
         public IEnumerable<Lance> Lances => _lances;
@@ -29,8 +30,14 @@ namespace Alura.LeilaoOnline.Core
         public void RecebeLance(Interessada cliente, double valor)
         {
             if (Estado == EstadoLeilao.LeilaoEmAndamento)
-                _lances.Add(new Lance(cliente, valor));
-            
+            {
+                if(cliente != _ultimoCliente)
+                {
+                    _lances.Add(new Lance(cliente, valor));
+                    _ultimoCliente = cliente;
+                }
+            }
+               
         }
 
         public void IniciaPregao()

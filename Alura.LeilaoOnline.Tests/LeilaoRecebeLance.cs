@@ -1,42 +1,39 @@
-﻿using Alura.LeilaoOnline.Core;
-using System;
-using System.Collections.Generic;
+﻿using Xunit;
+using Alura.LeilaoOnline.Core;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Alura.LeilaoOnline.Tests
 {
-    public class LeilaoTerminaPregao
+    public class LeilaoRecebeLance
     {
         [Fact]
-        public void RetornaZeroDadoLeilaoSemLances()
+        public void NaoAceitaProximoLanceDadoMesmoClienteRealizouUltimoLance()
         {
             //Arranje- cenário
             var leilao = new Leilao("Van Gogh");
-
+            var fulano = new Interessada("Fulano", leilao);
             leilao.IniciaPregao();
+            leilao.RecebeLance(fulano, 800);
+
             //Act - método sob teste
-            leilao.TerminaPregao();
+            leilao.RecebeLance(fulano, 900);
 
             //Assert - Verificação das expectativas
-            var valorEsperado = 0;
-            var valorObtido = leilao.Ganhador.Valor;
+            var valorEsperado = 1;
+            var valorObtido = leilao.Lances.Count();
 
             Assert.Equal(valorEsperado, valorObtido);
 
         }
 
         [Theory]
-        [InlineData(1200, new double[] { 800, 900, 1000, 990, 1200 })]
-        [InlineData(1000, new double[] { 800, 900, 1000, 990 })]
-        [InlineData(800, new double[] { 800 })]
-        public void RetornaMaiorValorDadoLeilaoComPeloOuMenosUmLance(
-            double valorEsperado,
-            double[] ofertas
-            )
+        [InlineData(2, new double[] { 800, 900 })]
+        [InlineData(4, new double[] { 100, 1200, 800, 900 })]
+        public void NaoPermiteNovosLancesDadoLeilaoFinalizado(
+            int quantidadeEsperada,
+            double[] ofertas)
         {
+
             //Arranje- cenário
             var leilao = new Leilao("Van Gogh");
             var fulano = new Interessada("Fulano", leilao);
@@ -56,15 +53,20 @@ namespace Alura.LeilaoOnline.Tests
                     leilao.RecebeLance(maria, valor);
                 }
             }
+
+            leilao.TerminaPregao();
+
             //Act - método sob teste
+            leilao.RecebeLance(fulano, 1000);
+
             leilao.TerminaPregao();
 
             //Assert - Verificação das expectativas
-            var valorObtido = leilao.Ganhador.Valor;
+            var quantidadeObtida = leilao.Lances.Count();
 
-            Assert.Equal(valorEsperado, valorObtido);
+            Assert.Equal(quantidadeEsperada, quantidadeObtida);
+
 
         }
-
     }
 }
