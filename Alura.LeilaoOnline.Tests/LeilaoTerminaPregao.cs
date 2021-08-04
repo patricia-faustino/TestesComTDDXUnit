@@ -10,13 +10,71 @@ namespace Alura.LeilaoOnline.Tests
 {
     public class LeilaoTerminaPregao
     {
+        [Theory]
+        [InlineData(1200, 1250, new double[] { 800, 1150, 1400, 1250 })]
+        public void RetornaValorSuperiorMaisProxioDadoLeilaoNessaModalidade(
+            double valorDestino,
+            double valorEsperado,
+            double[] ofertas
+            )
+        {
+            //Arranje- cenário
+            IModalidadeAvaliacao modalidade = 
+                new OfertaSuperiorMaisProxima(valorDestino);
+            var leilao = new Leilao("Van Gogh", modalidade);
+            var fulano = new Interessada("Fulano", leilao);
+            var maria = new Interessada("Maria", leilao);
+
+            leilao.IniciaPregao();
+
+            for (int i = 0; i < ofertas.Length; i++)
+            {
+                var valor = ofertas[i];
+                if (i % 2 == 0)
+                {
+                    leilao.RecebeLance(fulano, valor);
+                }
+                else
+                {
+                    leilao.RecebeLance(maria, valor);
+                }
+            }
+            //Act - método sob teste
+            leilao.TerminaPregao();
+
+            //Assert - Verificação das expectativas
+            var valorObtido = leilao.Ganhador.Valor;
+
+            Assert.Equal(valorEsperado, valorObtido);
+
+        }
+
+        [Fact]
+        public void LancaInvalidOperationDadoPregaoNaoIniciado()
+        {
+            //Arranje- cenário
+            var modalidade = new MaiorValor();
+            var leilao = new Leilao("Van Gogh", modalidade);
+
+            var excecaoObtida = Assert.Throws<InvalidOperationException>(
+                //Act - método sob teste
+                () => leilao.TerminaPregao()
+            );
+
+            var mensagemEsperada = "Não é permitido finalizar o pregão sem que ele tenha inicializado." +
+                "Utilize o método IniciaPregao().";
+
+            Assert.Equal(mensagemEsperada, excecaoObtida.Message);
+        }
+
         [Fact]
         public void RetornaZeroDadoLeilaoSemLances()
         {
             //Arranje- cenário
-            var leilao = new Leilao("Van Gogh");
+            var modalidade = new MaiorValor();
+            var leilao = new Leilao("Van Gogh", modalidade);
 
-
+            leilao.IniciaPregao();
             //Act - método sob teste
             leilao.TerminaPregao();
 
@@ -38,15 +96,26 @@ namespace Alura.LeilaoOnline.Tests
             )
         {
             //Arranje- cenário
-            var leilao = new Leilao("Van Gogh");
+            var modalidade =
+                new MaiorValor();
+            var leilao = new Leilao("Van Gogh", modalidade);
             var fulano = new Interessada("Fulano", leilao);
+            var maria = new Interessada("Maria", leilao);
 
-            foreach (var valor in ofertas)
+            leilao.IniciaPregao();
+
+            for (int i = 0; i < ofertas.Length; i++)
             {
-                leilao.RecebeLance(fulano, valor);
+                var valor = ofertas[i];
+                if (i % 2 == 0)
+                {
+                    leilao.RecebeLance(fulano, valor);
+                }
+                else
+                {
+                    leilao.RecebeLance(maria, valor);
+                }
             }
-
-
             //Act - método sob teste
             leilao.TerminaPregao();
 
