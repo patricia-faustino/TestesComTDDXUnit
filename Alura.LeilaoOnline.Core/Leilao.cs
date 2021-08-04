@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Alura.LeilaoOnline.Core
@@ -29,15 +30,18 @@ namespace Alura.LeilaoOnline.Core
 
         public void RecebeLance(Interessada cliente, double valor)
         {
-            if (Estado == EstadoLeilao.LeilaoEmAndamento)
+            if (NovoLanceEhAceito(cliente))
             {
-                if(cliente != _ultimoCliente)
-                {
                     _lances.Add(new Lance(cliente, valor));
                     _ultimoCliente = cliente;
-                }
             }
-               
+
+        }
+
+        private bool NovoLanceEhAceito(Interessada cliente)
+        {
+            return Estado == EstadoLeilao.LeilaoEmAndamento
+                && cliente != _ultimoCliente;
         }
 
         public void IniciaPregao()
@@ -47,6 +51,11 @@ namespace Alura.LeilaoOnline.Core
 
         public void TerminaPregao()
         {
+            if (Estado != EstadoLeilao.LeilaoEmAndamento)
+            {
+                throw new InvalidOperationException("Não é permitido finalizar o pregão sem que ele tenha inicializado." +
+                "Utilize o método IniciaPregao().");
+            }
             Ganhador = Lances
                 .DefaultIfEmpty(new Lance(null, 0))
                 .OrderBy(lance => lance.Valor)

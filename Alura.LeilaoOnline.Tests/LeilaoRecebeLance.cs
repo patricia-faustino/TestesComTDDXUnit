@@ -59,7 +59,6 @@ namespace Alura.LeilaoOnline.Tests
             //Act - método sob teste
             leilao.RecebeLance(fulano, 1000);
 
-            leilao.TerminaPregao();
 
             //Assert - Verificação das expectativas
             var quantidadeObtida = leilao.Lances.Count();
